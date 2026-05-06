@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FilterBar } from './components/FilterBar';
 import { JobDetailPanel } from './components/JobDetailPanel';
 import { JobList } from './components/JobList';
+import { SummaryStrip } from './components/SummaryStrip';
 import { contractors, mockJobs } from './data/mockJobs';
 import { filterJobs } from './domain/filters';
 import type { Job, JobFilters, JobStatus } from './domain/jobs';
@@ -59,6 +60,8 @@ function App() {
       </section>
 
       <FilterBar contractors={contractors} filters={filters} onFiltersChange={setFilters} />
+
+      <SummaryStrip jobs={filteredJobs} />
 
       <section className="dashboard-grid">
         <JobList
