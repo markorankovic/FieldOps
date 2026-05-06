@@ -6,6 +6,7 @@ import { SummaryStrip } from './components/SummaryStrip';
 import { contractors, mockJobs } from './data/mockJobs';
 import { filterJobs } from './domain/filters';
 import type { Job, JobFilters, JobStatus } from './domain/jobs';
+import { getBrowserStorage, loadFilters, loadJobs, saveFilters, saveJobs } from './domain/persistence';
 import { updateJobStatus } from './domain/workflow';
 
 const defaultFilters: JobFilters = {
@@ -16,14 +17,26 @@ const defaultFilters: JobFilters = {
 };
 
 function App() {
-  const [jobs, setJobs] = useState<Job[]>(mockJobs);
-  const [filters, setFilters] = useState<JobFilters>(defaultFilters);
-  const [selectedJobId, setSelectedJobId] = useState<string | null>(mockJobs[0]?.id ?? null);
+  const initialJobs = loadJobs(getBrowserStorage(), mockJobs);
+
+  const [jobs, setJobs] = useState<Job[]>(initialJobs);
+  const [filters, setFilters] = useState<JobFilters>(() =>
+    loadFilters(getBrowserStorage(), defaultFilters),
+  );
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(initialJobs[0]?.id ?? null);
 
   const filteredJobs = useMemo(
     () => filterJobs(jobs, filters, contractors),
     [jobs, filters],
   );
+
+  useEffect(() => {
+    saveJobs(getBrowserStorage(), jobs);
+  }, [jobs]);
+
+  useEffect(() => {
+    saveFilters(getBrowserStorage(), filters);
+  }, [filters]);
 
   const selectedJob =
     filteredJobs.find((job) => job.id === selectedJobId) ??
@@ -48,6 +61,10 @@ function App() {
     );
   };
 
+  const handleResetFilters = () => {
+    setFilters(defaultFilters);
+  };
+
   return (
     <main className="app-shell">
       <section className="hero">
@@ -59,7 +76,12 @@ function App() {
         </p>
       </section>
 
-      <FilterBar contractors={contractors} filters={filters} onFiltersChange={setFilters} />
+      <FilterBar
+        contractors={contractors}
+        filters={filters}
+        onFiltersChange={setFilters}
+        onResetFilters={handleResetFilters}
+      />
 
       <SummaryStrip jobs={filteredJobs} />
 

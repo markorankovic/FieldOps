@@ -25,7 +25,6 @@ export const JobList = ({ jobs, contractors, selectedJobId, onSelectJob }: JobLi
           <p className="eyebrow">Active Queue</p>
           <h2>Jobs</h2>
         </div>
-        <span className="count-pill">{jobs.length} shown</span>
       </div>
 
       <div className="job-table">
@@ -37,32 +36,39 @@ export const JobList = ({ jobs, contractors, selectedJobId, onSelectJob }: JobLi
           <span>Scheduled</span>
         </div>
 
-        {jobs.map((job) => {
-          const contractor = contractorMap.get(job.contractorId);
-          const isSelected = job.id === selectedJobId;
+        {jobs.length > 0 ? (
+          jobs.map((job) => {
+            const contractor = contractorMap.get(job.contractorId);
+            const isSelected = job.id === selectedJobId;
 
-          return (
-            <button
-              key={job.id}
-              className={`job-row${isSelected ? ' selected' : ''}`}
-              type="button"
-              onClick={() => onSelectJob(job.id)}
-            >
-              <span>
-                <strong>{job.title}</strong>
-                <small>
-                  {job.id} · {job.site}
-                </small>
-              </span>
-              <span className={`status-badge status-${job.status}`}>{statusLabels[job.status]}</span>
-              <span className={`priority-badge priority-${job.priority}`}>
-                {priorityLabels[job.priority]}
-              </span>
-              <span>{contractor?.name ?? 'Unassigned'}</span>
-              <span>{formatDate(job.scheduledFor)}</span>
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={job.id}
+                className={`job-row${isSelected ? ' selected' : ''}`}
+                type="button"
+                onClick={() => onSelectJob(job.id)}
+              >
+                <span>
+                  <strong>{job.title}</strong>
+                  <small>
+                    {job.id} · {job.site}
+                  </small>
+                </span>
+                <span className={`status-badge status-${job.status}`}>{statusLabels[job.status]}</span>
+                <span className={`priority-badge priority-${job.priority}`}>
+                  {priorityLabels[job.priority]}
+                </span>
+                <span>{contractor?.name ?? 'Unassigned'}</span>
+                <span>{formatDate(job.scheduledFor)}</span>
+              </button>
+            );
+          })
+        ) : (
+          <div className="job-empty-state">
+            <strong>No jobs match these filters.</strong>
+            <p>Try clearing one or more filters to bring jobs back into view.</p>
+          </div>
+        )}
       </div>
     </section>
   );
