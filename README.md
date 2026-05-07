@@ -1,10 +1,17 @@
 # FieldOps
 
+[![CI](https://github.com/markorankovic/FieldOps/actions/workflows/ci.yml/badge.svg)](https://github.com/markorankovic/FieldOps/actions/workflows/ci.yml)
+
 FieldOps is a focused React + TypeScript portfolio project that models a contractor job workflow dashboard. It is designed to demonstrate product-minded frontend development around operational software: workflow state, valid transitions, filtering, audit history, and lightweight client-side persistence.
 
 ![FieldOps dashboard overview](docs/screenshots/main.png)
 
 This is intentionally a frontend-only demo. There is no backend, authentication, or database layer yet.
+
+## Live Demo
+
+- Live demo: `https://your-deployment-url`
+- CI workflow: `https://github.com/markorankovic/FieldOps/actions/workflows/ci.yml`
 
 ## Why I Built It
 
@@ -100,11 +107,34 @@ npm test
 npm run build
 ```
 
+The production-ready static assets are generated in `dist/`.
+
+## Deployment Notes
+
+FieldOps is a static Vite application, so it is straightforward to deploy on Vercel or Netlify without adding backend infrastructure.
+
+### Vercel
+
+- Framework preset: `Vite`
+- Build command: `npm run build`
+- Output directory: `dist`
+
+### Netlify
+
+- Build command: `npm run build`
+- Publish directory: `dist`
+- A minimal [netlify.toml](/home/marko/FieldOps/netlify.toml:1) is included for convenience
+
+### CI
+
+A minimal GitHub Actions workflow is included at [.github/workflows/ci.yml](/home/marko/FieldOps/.github/workflows/ci.yml:1). It runs:
+- `npm ci`
+- `npm test`
+- `npm run build`
+
 ## What I Would Improve With More Time
 
-- deploy the app to Vercel or Netlify for a live portfolio link
 - split styling into component-level files for easier long-term maintenance
-- add CI to run install, test, and build checks automatically
 - add a simple Dockerfile for consistent local/demo setup
 - improve accessibility details such as keyboard interaction polish and screen reader cues
 - expand the workflow model with assignment changes, notes, or richer timeline events
