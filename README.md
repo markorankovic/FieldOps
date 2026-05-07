@@ -10,8 +10,8 @@ This is intentionally a frontend-only demo. There is no backend, authentication,
 
 ## Live Demo
 
-- Live demo: `https://gleeful-donut-55165c.netlify.app/`
-- CI workflow: `https://github.com/markorankovic/FieldOps/actions/workflows/ci.yml`
+- Live demo: [https://gleeful-donut-55165c.netlify.app/](https://gleeful-donut-55165c.netlify.app/)
+- CI workflow: [GitHub Actions](https://github.com/markorankovic/FieldOps/actions/workflows/ci.yml)
 
 ## Why I Built It
 
