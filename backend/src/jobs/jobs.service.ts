@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { AuditAction, JobStatus, Prisma } from '@prisma/client';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   AuditEntryResponseDto,
   JobResponseDto,
   UserSummaryDto,
 } from './dto/job-response.dto';
+import { canTransitionStatus } from './workflow';
 
 const userSummarySelect = {
   id: true,
@@ -13,6 +19,20 @@ const userSummarySelect = {
   role: true,
 } as const;
 
+const jobWithRelationsInclude = Prisma.validator<Prisma.JobInclude>()({
+  assignedUser: {
+    select: userSummarySelect,
+  },
+  auditEntries: {
+    orderBy: [{ createdAt: 'desc' }],
+    include: {
+      actorUser: {
+        select: userSummarySelect,
+      },
+    },
+  },
+});
+
 @Injectable()
 export class JobsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -20,39 +40,32 @@ export class JobsService {
   async findAll(): Promise<JobResponseDto[]> {
     const jobs = await this.prisma.job.findMany({
       orderBy: [{ scheduledDate: 'asc' }],
-      include: {
-        assignedUser: {
-          select: userSummarySelect,
-        },
-        auditEntries: {
-          orderBy: [{ createdAt: 'desc' }],
-          include: {
-            actorUser: {
-              select: userSummarySelect,
-            },
-          },
-        },
-      },
+      include: jobWithRelationsInclude,
     });
 
     return jobs.map((job) => this.toJobResponse(job));
   }
 
   async findById(id: string): Promise<JobResponseDto> {
+    const job = await this.findJobRecordById(id);
+
+    if (!job) {
+      throw new NotFoundException(`Job ${id} was not found.`);
+    }
+
+    return this.toJobResponse(job);
+  }
+
+  async updateStatus(
+    id: string,
+    nextStatus: JobStatus,
+    actorUserId: string,
+  ): Promise<JobResponseDto> {
     const job = await this.prisma.job.findUnique({
       where: { id },
-      include: {
-        assignedUser: {
-          select: userSummarySelect,
-        },
-        auditEntries: {
-          orderBy: [{ createdAt: 'desc' }],
-          include: {
-            actorUser: {
-              select: userSummarySelect,
-            },
-          },
-        },
+      select: {
+        id: true,
+        status: true,
       },
     });
 
@@ -60,7 +73,57 @@ export class JobsService {
       throw new NotFoundException(`Job ${id} was not found.`);
     }
 
-    return this.toJobResponse(job);
+    const actor = await this.prisma.user.findUnique({
+      where: { id: actorUserId },
+      select: { id: true },
+    });
+
+    if (!actor) {
+      throw new NotFoundException(`User ${actorUserId} was not found.`);
+    }
+
+    if (!canTransitionStatus(job.status, nextStatus)) {
+      throw new BadRequestException(
+        `Cannot transition job ${id} from ${job.status} to ${nextStatus}.`,
+      );
+    }
+
+    const updatedJob = await this.prisma.$transaction(async (tx) => {
+      await tx.auditEntry.create({
+        data: {
+          jobId: job.id,
+          actorUserId,
+          action: AuditAction.STATUS_CHANGED,
+          fromStatus: job.status,
+          toStatus: nextStatus,
+        },
+      });
+
+      await tx.job.update({
+        where: { id: job.id },
+        data: {
+          status: nextStatus,
+        },
+      });
+
+      return tx.job.findUnique({
+        where: { id: job.id },
+        include: jobWithRelationsInclude,
+      });
+    });
+
+    if (!updatedJob) {
+      throw new NotFoundException(`Job ${id} was not found after update.`);
+    }
+
+    return this.toJobResponse(updatedJob);
+  }
+
+  private findJobRecordById(id: string) {
+    return this.prisma.job.findUnique({
+      where: { id },
+      include: jobWithRelationsInclude,
+    });
   }
 
   private toUserSummary(user: {
