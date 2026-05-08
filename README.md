@@ -6,7 +6,7 @@ FieldOps is a focused React + TypeScript portfolio project that models a contrac
 
 ![FieldOps dashboard overview](docs/screenshots/main.png)
 
-This is intentionally a frontend-only demo. There is no backend, authentication, or database layer yet.
+`main` remains the stable frontend-only portfolio version. The `feature/full-stack-backend` branch extends the same app with a NestJS API, JWT auth, role-aware job access, and backend persistence for a fuller TypeScript demo.
 
 ## Live Demo
 
@@ -26,7 +26,7 @@ The goal was to create a compact, demoable app that reflects the kinds of produc
 
 ## What It Does
 
-FieldOps currently includes:
+The stable `main` branch includes:
 - a dashboard view of contractor jobs using mock data
 - filters for status, priority, contractor, and free-text search
 - active filter chips with one-click removal
@@ -39,6 +39,44 @@ FieldOps currently includes:
 - `localStorage` persistence for filters and job status/audit changes
 
 ![FieldOps workflow demo](docs/screenshots/fieldops-workflow.gif)
+
+## Full-Stack Branch Notes
+
+The `feature/full-stack-backend` branch adds:
+- NestJS + Prisma + SQLite backend
+- JWT login and `GET /api/auth/me`
+- role-based and ownership-based job access
+- backend-driven job status updates and assignment
+- audit logging persisted by the API
+
+Demo credentials on that branch:
+- Admin: `admin@fieldops.local` / `demo-admin`
+- Contractor: `maya@fieldops.local` / `demo-contractor`
+
+To run the full-stack branch locally:
+
+```bash
+npm install
+cd backend
+npm install
+npx prisma db push
+npm run prisma:seed
+```
+
+Start the backend:
+
+```bash
+cd backend
+npm run start:dev
+```
+
+Start the frontend in a second terminal:
+
+```bash
+npm run dev
+```
+
+The Vite frontend proxies `/api` requests to `http://127.0.0.1:3000` on this branch.
 
 ## Tech Stack
 

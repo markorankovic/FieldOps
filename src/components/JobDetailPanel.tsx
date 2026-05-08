@@ -1,15 +1,21 @@
+import { useEffect, useState } from 'react';
 import {
+  type ContractorUser,
   priorityLabels,
   statusLabels,
-  type Contractor,
   type Job,
   type JobStatus,
+  type UserRole,
 } from '../domain/jobs';
 import { getAllowedTransitions } from '../domain/workflow';
 
 type JobDetailPanelProps = {
   job: Job | null;
-  contractors: Contractor[];
+  contractors: ContractorUser[];
+  currentUserRole: UserRole;
+  isAssigning: boolean;
+  isUpdatingStatus: boolean;
+  onAssignJob: (jobId: string, contractorId: string) => void;
   onChangeStatus: (jobId: string, nextStatus: JobStatus) => void;
 };
 
@@ -22,8 +28,18 @@ const formatDateTime = (value: string) =>
 export const JobDetailPanel = ({
   job,
   contractors,
+  currentUserRole,
+  isAssigning,
+  isUpdatingStatus,
+  onAssignJob,
   onChangeStatus,
 }: JobDetailPanelProps) => {
+  const [selectedContractorId, setSelectedContractorId] = useState(job?.contractorId ?? '');
+
+  useEffect(() => {
+    setSelectedContractorId(job?.contractorId ?? '');
+  }, [job?.contractorId, job?.id]);
+
   if (!job) {
     return (
       <aside className="panel detail-panel empty-state">
@@ -36,13 +52,15 @@ export const JobDetailPanel = ({
 
   const contractor = contractors.find((entry) => entry.id === job.contractorId);
   const allowedTransitions = getAllowedTransitions(job.status);
+  const canAssignJobs = currentUserRole === 'ADMIN';
+  const assignmentChanged = selectedContractorId !== (job.contractorId ?? '');
 
   return (
     <aside className="panel detail-panel">
       <div className="panel-header">
         <div>
           <p className="eyebrow">Job Detail</p>
-          <h2>{job.title}</h2>
+          <h2>{job.address}</h2>
         </div>
         <span className={`status-badge status-${job.status}`}>{statusLabels[job.status]}</span>
       </div>
@@ -58,25 +76,25 @@ export const JobDetailPanel = ({
         </div>
         <div>
           <span className="detail-label">Contractor</span>
-          <p>{contractor ? `${contractor.name} · ${contractor.trade}` : 'Unassigned'}</p>
+          <p>{contractor ? contractor.name : 'Unassigned'}</p>
         </div>
         <div>
           <span className="detail-label">Scheduled</span>
           <p>{formatDateTime(job.scheduledFor)}</p>
         </div>
         <div>
-          <span className="detail-label">Customer</span>
-          <p>{job.customer}</p>
+          <span className="detail-label">Last Updated</span>
+          <p>{formatDateTime(job.updatedAt)}</p>
         </div>
         <div>
-          <span className="detail-label">Site</span>
-          <p>{job.site}</p>
+          <span className="detail-label">Assigned Role</span>
+          <p>{contractor?.role ?? 'None'}</p>
         </div>
       </div>
 
       <div className="detail-section">
-        <span className="detail-label">Scope</span>
-        <p>{job.summary}</p>
+        <span className="detail-label">Description</span>
+        <p>{job.description}</p>
       </div>
 
       <div className="detail-section">
@@ -88,6 +106,7 @@ export const JobDetailPanel = ({
                 key={status}
                 className="secondary-button"
                 type="button"
+                disabled={isUpdatingStatus}
                 onClick={() => onChangeStatus(job.id, status)}
               >
                 Move to {statusLabels[status]}
@@ -98,6 +117,35 @@ export const JobDetailPanel = ({
           )}
         </div>
       </div>
+
+      {canAssignJobs ? (
+        <div className="detail-section">
+          <span className="detail-label">Assignment</span>
+          <div className="assignment-controls">
+            <select
+              aria-label="Assign contractor"
+              value={selectedContractorId}
+              onChange={(event) => setSelectedContractorId(event.target.value)}
+            >
+              <option value="">Select contractor</option>
+              {contractors.map((entry) => (
+                <option key={entry.id} value={entry.id}>
+                  {entry.name}
+                </option>
+              ))}
+            </select>
+
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={!selectedContractorId || !assignmentChanged || isAssigning}
+              onClick={() => onAssignJob(job.id, selectedContractorId)}
+            >
+              {isAssigning ? 'Saving assignment...' : 'Save assignment'}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="detail-section">
         <span className="detail-label">Audit Timeline</span>

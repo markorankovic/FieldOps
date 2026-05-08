@@ -11,31 +11,36 @@ export const jobPriorities = ['low', 'medium', 'high', 'urgent'] as const;
 
 export type JobStatus = (typeof jobStatuses)[number];
 export type JobPriority = (typeof jobPriorities)[number];
+export type UserRole = 'ADMIN' | 'CONTRACTOR';
 
-export type Contractor = {
+export type UserSummary = {
   id: string;
   name: string;
-  trade: string;
+  email: string;
+  role: UserRole;
+};
+
+export type ContractorUser = UserSummary & {
+  role: 'CONTRACTOR';
 };
 
 export type AuditEntry = {
   id: string;
   timestamp: string;
   actor: string;
-  type: 'created' | 'status_changed' | 'note';
+  type: 'assignment' | 'created' | 'status_changed' | 'note';
   message: string;
 };
 
 export type Job = {
   id: string;
-  title: string;
-  site: string;
-  customer: string;
-  contractorId: string;
+  address: string;
+  description: string;
+  contractorId: string | null;
   status: JobStatus;
   priority: JobPriority;
   scheduledFor: string;
-  summary: string;
+  updatedAt: string;
   audit: AuditEntry[];
 };
 

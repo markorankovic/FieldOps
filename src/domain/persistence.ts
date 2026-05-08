@@ -1,8 +1,7 @@
-import { jobPriorities, jobStatuses, type Job, type JobFilters, type JobPriority, type JobStatus } from './jobs';
+import { jobPriorities, jobStatuses, type JobFilters, type JobPriority, type JobStatus } from './jobs';
 
 type StorageLike = Pick<Storage, 'getItem' | 'setItem'>;
 
-const jobsStorageKey = 'fieldops.jobs';
 const filtersStorageKey = 'fieldops.filters';
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -13,28 +12,6 @@ const isJobStatus = (value: unknown): value is JobStatus =>
 
 const isJobPriority = (value: unknown): value is JobPriority =>
   typeof value === 'string' && jobPriorities.includes(value as JobPriority);
-
-const isAuditEntry = (value: unknown): boolean =>
-  isObject(value) &&
-  typeof value.id === 'string' &&
-  typeof value.timestamp === 'string' &&
-  typeof value.actor === 'string' &&
-  ['created', 'status_changed', 'note'].includes(value.type as string) &&
-  typeof value.message === 'string';
-
-const isJob = (value: unknown): value is Job =>
-  isObject(value) &&
-  typeof value.id === 'string' &&
-  typeof value.title === 'string' &&
-  typeof value.site === 'string' &&
-  typeof value.customer === 'string' &&
-  typeof value.contractorId === 'string' &&
-  isJobStatus(value.status) &&
-  isJobPriority(value.priority) &&
-  typeof value.scheduledFor === 'string' &&
-  typeof value.summary === 'string' &&
-  Array.isArray(value.audit) &&
-  value.audit.every(isAuditEntry);
 
 const isJobFilters = (value: unknown): value is JobFilters =>
   isObject(value) &&
@@ -79,15 +56,6 @@ export const getBrowserStorage = (): StorageLike | null => {
   }
 
   return window.localStorage;
-};
-
-export const loadJobs = (storage: StorageLike | null, fallbackJobs: Job[]): Job[] =>
-  readStoredValue<Job[]>(storage, jobsStorageKey, (value): value is Job[] =>
-    Array.isArray(value) && value.every(isJob),
-  ) ?? fallbackJobs;
-
-export const saveJobs = (storage: StorageLike | null, jobs: Job[]) => {
-  writeStoredValue(storage, jobsStorageKey, jobs);
 };
 
 export const loadFilters = (

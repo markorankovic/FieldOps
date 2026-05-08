@@ -1,4 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Role } from '@prisma/client';
+import type { AuthenticatedUser } from '../auth/auth.types';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserSummaryDto } from './dto/user-summary.dto';
 
@@ -30,6 +32,28 @@ export class UsersService {
     });
 
     return user ? this.toUserSummary(user) : null;
+  }
+
+  async findAllSafe(
+    user: AuthenticatedUser,
+    role?: Role,
+  ): Promise<UserSummaryDto[]> {
+    if (user.role !== Role.ADMIN) {
+      throw new ForbiddenException('Only admins can view users.');
+    }
+
+    const users = await this.prisma.user.findMany({
+      where: role ? { role } : undefined,
+      orderBy: [{ name: 'asc' }],
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+    });
+
+    return users.map((entry) => this.toUserSummary(entry));
   }
 
   toUserSummary(user: {

@@ -1,8 +1,8 @@
-import { priorityLabels, statusLabels, type Contractor, type Job } from '../domain/jobs';
+import { priorityLabels, statusLabels, type ContractorUser, type Job } from '../domain/jobs';
 
 type JobListProps = {
   jobs: Job[];
-  contractors: Contractor[];
+  contractors: ContractorUser[];
   selectedJobId: string | null;
   onSelectJob: (jobId: string) => void;
 };
@@ -38,7 +38,7 @@ export const JobList = ({ jobs, contractors, selectedJobId, onSelectJob }: JobLi
 
         {jobs.length > 0 ? (
           jobs.map((job) => {
-            const contractor = contractorMap.get(job.contractorId);
+            const contractor = job.contractorId ? contractorMap.get(job.contractorId) : undefined;
             const isSelected = job.id === selectedJobId;
 
             return (
@@ -49,9 +49,9 @@ export const JobList = ({ jobs, contractors, selectedJobId, onSelectJob }: JobLi
                 onClick={() => onSelectJob(job.id)}
               >
                 <span>
-                  <strong>{job.title}</strong>
+                  <strong>{job.address}</strong>
                   <small>
-                    {job.id} · {job.site}
+                    {job.id} · {job.description}
                   </small>
                 </span>
                 <span className={`status-badge status-${job.status}`}>{statusLabels[job.status]}</span>

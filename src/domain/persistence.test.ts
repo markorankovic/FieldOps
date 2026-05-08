@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { mockJobs } from '../data/mockJobs';
 import type { JobFilters } from './jobs';
-import { loadFilters, loadJobs, saveFilters, saveJobs } from './persistence';
+import { loadFilters, saveFilters } from './persistence';
 
 type MemoryStorage = {
   getItem: (key: string) => string | null;
@@ -29,21 +28,6 @@ const fallbackFilters: JobFilters = {
 };
 
 describe('persistence', () => {
-  it('loads persisted jobs when storage contains a valid job array', () => {
-    const storage = createMemoryStorage();
-
-    saveJobs(storage, mockJobs);
-
-    expect(loadJobs(storage, [])).toEqual(mockJobs);
-  });
-
-  it('falls back to mock jobs when persisted jobs are invalid', () => {
-    const storage = createMemoryStorage();
-    storage.setItem('fieldops.jobs', JSON.stringify([{ id: 'broken-job' }]));
-
-    expect(loadJobs(storage, mockJobs)).toEqual(mockJobs);
-  });
-
   it('loads persisted filters when storage contains valid filter state', () => {
     const storage = createMemoryStorage();
     const storedFilters: JobFilters = {

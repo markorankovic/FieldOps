@@ -1,76 +1,71 @@
-import type { Contractor, Job } from '../domain/jobs';
+import type { ContractorUser, Job } from '../domain/jobs';
 import { createJobCreatedEntry } from '../domain/workflow';
 
-export const contractors: Contractor[] = [
-  { id: 'ctr-1', name: 'Maya Patel', trade: 'Electrical' },
-  { id: 'ctr-2', name: 'Lewis Grant', trade: 'General Maintenance' },
-  { id: 'ctr-3', name: 'Sofia Alvarez', trade: 'Plumbing' },
+export const contractors: ContractorUser[] = [
+  { id: 'ctr-1', name: 'Maya Patel', email: 'maya@example.com', role: 'CONTRACTOR' },
+  { id: 'ctr-2', name: 'Lewis Grant', email: 'lewis@example.com', role: 'CONTRACTOR' },
+  { id: 'ctr-3', name: 'Sofia Alvarez', email: 'sofia@example.com', role: 'CONTRACTOR' },
 ];
 
 export const mockJobs: Job[] = [
   {
     id: 'JOB-1042',
-    title: 'Replace damaged loading bay lights',
-    site: 'North Yard Warehouse',
-    customer: 'Harbor Freight Logistics',
+    address: 'North Yard Warehouse',
+    description:
+      'Replace damaged loading bay lights and confirm safety compliance after a power surge.',
     contractorId: 'ctr-1',
     status: 'scheduled',
     priority: 'high',
     scheduledFor: '2026-05-08T09:00:00.000Z',
-    summary:
-      'Three overhead fixtures failed after a power surge. Replace fittings and confirm safety compliance.',
+    updatedAt: '2026-05-08T08:00:00.000Z',
     audit: [createJobCreatedEntry('Job created and assigned to Maya Patel.')],
   },
   {
     id: 'JOB-1043',
-    title: 'Investigate boiler pressure drop',
-    site: 'Maple Court Apartments',
-    customer: 'Crestline Property Group',
+    address: 'Maple Court Apartments',
+    description:
+      'Investigate boiler pressure drop and inspect the pressure valve, expansion vessel, and pipework.',
     contractorId: 'ctr-3',
     status: 'in_progress',
     priority: 'urgent',
     scheduledFor: '2026-05-06T12:30:00.000Z',
-    summary:
-      'Tenant reports intermittent hot water. Inspect pressure valve, expansion vessel, and visible pipework.',
+    updatedAt: '2026-05-06T12:45:00.000Z',
     audit: [createJobCreatedEntry('Urgent job created after tenant escalation.')],
   },
   {
     id: 'JOB-1044',
-    title: 'Repair reception desk drawer runners',
-    site: 'Brunswick House',
-    customer: 'Oak & Pine Advisory',
+    address: 'Brunswick House',
+    description:
+      'Repair the reception desk drawer runners and check neighboring fittings.',
     contractorId: 'ctr-2',
     status: 'new',
     priority: 'medium',
     scheduledFor: '2026-05-09T14:00:00.000Z',
-    summary:
-      'Front desk storage drawer is detached on one side. Restore movement and check neighboring fittings.',
+    updatedAt: '2026-05-08T10:30:00.000Z',
     audit: [createJobCreatedEntry('Job logged from weekly facilities review.')],
   },
   {
     id: 'JOB-1045',
-    title: 'Clear blocked kitchen sink line',
-    site: 'Riverside Cafe',
-    customer: 'Riverside Hospitality',
+    address: 'Riverside Cafe',
+    description:
+      'Clear a blocked kitchen sink line after access is restored by the site manager.',
     contractorId: 'ctr-3',
     status: 'blocked',
     priority: 'high',
     scheduledFor: '2026-05-07T08:00:00.000Z',
-    summary:
-      'Access limited until site manager arrives with key to under-counter cabinet. Follow-up needed.',
+    updatedAt: '2026-05-07T08:15:00.000Z',
     audit: [createJobCreatedEntry('Access issue recorded after first site visit.')],
   },
   {
     id: 'JOB-1046',
-    title: 'Complete storefront signage installation',
-    site: 'King Street Retail Unit',
-    customer: 'Northline Fashion',
+    address: 'King Street Retail Unit',
+    description:
+      'Complete the storefront signage installation and confirm alignment against the approved drawing.',
     contractorId: 'ctr-2',
     status: 'completed',
     priority: 'low',
     scheduledFor: '2026-05-05T10:00:00.000Z',
-    summary:
-      'Install final acrylic letters and confirm alignment against approved elevation drawing.',
+    updatedAt: '2026-05-05T13:00:00.000Z',
     audit: [createJobCreatedEntry('Installation work order raised from fit-out plan.')],
   },
 ];

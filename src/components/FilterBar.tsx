@@ -1,7 +1,7 @@
-import { jobPriorities, jobStatuses, type Contractor, type JobFilters } from '../domain/jobs';
+import { jobPriorities, jobStatuses, type ContractorUser, type JobFilters } from '../domain/jobs';
 
 type FilterBarProps = {
-  contractors: Contractor[];
+  contractors: ContractorUser[];
   filters: JobFilters;
   onFiltersChange: (nextFilters: JobFilters) => void;
   onResetFilters: () => void;
@@ -51,7 +51,7 @@ export const FilterBar = ({
         <input
           aria-label="Search jobs"
           className="search-input"
-          placeholder="Search jobs, sites, customers..."
+          placeholder="Search jobs, addresses, descriptions..."
           type="search"
           value={filters.searchText}
           onChange={(event) => updateFilter('searchText', event.target.value)}

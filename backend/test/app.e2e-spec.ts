@@ -313,4 +313,22 @@ describe('App (e2e)', () => {
       })
       .expect(403);
   });
+
+  it('/api/users (GET) lets admins fetch contractor options', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/api/users?role=CONTRACTOR')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
+
+    expect(response.body).toHaveLength(2);
+    expect(response.body[0].role).toBe('CONTRACTOR');
+    expect(response.body[0].passwordHash).toBeUndefined();
+  });
+
+  it('/api/users (GET) blocks contractors from fetching user lists', async () => {
+    await request(app.getHttpServer())
+      .get('/api/users?role=CONTRACTOR')
+      .set('Authorization', `Bearer ${contractorToken}`)
+      .expect(403);
+  });
 });
