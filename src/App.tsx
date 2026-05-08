@@ -17,6 +17,7 @@ import { filterJobs } from './domain/filters';
 import { clearAccessToken, getBrowserStorage, loadAccessToken, saveAccessToken } from './domain/auth';
 import type { ContractorUser, Job, JobFilters, JobStatus, UserSummary } from './domain/jobs';
 import { loadFilters, saveFilters } from './domain/persistence';
+import { statusLabels } from './domain/jobs';
 
 const defaultFilters: JobFilters = {
   status: 'all',
@@ -27,6 +28,12 @@ const defaultFilters: JobFilters = {
 
 const toErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof ApiError) {
+    if (error.message.includes('Cannot transition job')) {
+      return 'That status change is not allowed for this job.';
+    }
+    if (error.message === 'You do not have access to this job.') {
+      return 'You do not have permission to work with that job.';
+    }
     return error.message;
   }
 
@@ -50,10 +57,12 @@ function App() {
   const [authChecked, setAuthChecked] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const [dashboardNotice, setDashboardNotice] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isAssigningJob, setIsAssigningJob] = useState(false);
+  const [dashboardRefreshKey, setDashboardRefreshKey] = useState(0);
 
   const filteredJobs = useMemo(
     () => filterJobs(jobs, filters, contractors),
@@ -70,6 +79,7 @@ function App() {
       setJobs([]);
       setContractors([]);
       setSelectedJobId(null);
+      setDashboardNotice(null);
       setAuthChecked(true);
       return;
     }
@@ -77,11 +87,20 @@ function App() {
     let active = true;
 
     const loadSession = async () => {
+      let resolvedUser: UserSummary | null = null;
+
       setIsLoadingDashboard(true);
       setDashboardError(null);
+      setDashboardNotice(null);
 
       try {
         const user = await getCurrentUser(accessToken);
+        resolvedUser = user;
+
+        if (active) {
+          setCurrentUser(user);
+        }
+
         const [nextJobs, nextContractors] = await Promise.all([
           getJobs(accessToken),
           user.role === 'ADMIN'
@@ -93,7 +112,6 @@ function App() {
           return;
         }
 
-        setCurrentUser(user);
         setJobs(nextJobs);
         setContractors(nextContractors);
       } catch (error) {
@@ -101,17 +119,22 @@ function App() {
           return;
         }
 
-        clearAccessToken(storage);
-        setAccessToken(null);
-        setCurrentUser(null);
-        setJobs([]);
-        setContractors([]);
-        setSelectedJobId(null);
-        setAuthError(
-          error instanceof ApiError && error.status === 401
-            ? 'Your session expired. Sign in again.'
-            : toErrorMessage(error, 'Unable to load your session.'),
-        );
+        if (error instanceof ApiError && error.status === 401) {
+          clearAccessToken(storage);
+          setAccessToken(null);
+          setCurrentUser(null);
+          setJobs([]);
+          setContractors([]);
+          setSelectedJobId(null);
+          setAuthError('Your session expired. Sign in again.');
+        } else if (resolvedUser) {
+          setDashboardError(
+            toErrorMessage(error, 'Unable to load jobs from the backend right now.'),
+          );
+        } else {
+          setCurrentUser(null);
+          setAuthError(toErrorMessage(error, 'Unable to load your session.'));
+        }
       } finally {
         if (active) {
           setAuthChecked(true);
@@ -125,7 +148,7 @@ function App() {
     return () => {
       active = false;
     };
-  }, [accessToken, storage]);
+  }, [accessToken, dashboardRefreshKey, storage]);
 
   const selectedJob =
     filteredJobs.find((job) => job.id === selectedJobId) ??
@@ -187,6 +210,7 @@ function App() {
     setJobs([]);
     setContractors([]);
     setDashboardError(null);
+    setDashboardNotice(null);
   };
 
   const handleStatusChange = async (jobId: string, nextStatus: JobStatus) => {
@@ -196,10 +220,12 @@ function App() {
 
     setIsUpdatingStatus(true);
     setDashboardError(null);
+    setDashboardNotice(null);
 
     try {
       const updatedJob = await updateJobStatus(accessToken, jobId, nextStatus);
       replaceJob(updatedJob);
+      setDashboardNotice(`Status updated to ${statusLabels[nextStatus]}.`);
     } catch (error) {
       setDashboardError(toErrorMessage(error, 'Unable to update the job status.'));
     } finally {
@@ -214,10 +240,14 @@ function App() {
 
     setIsAssigningJob(true);
     setDashboardError(null);
+    setDashboardNotice(null);
 
     try {
       const updatedJob = await assignJob(accessToken, jobId, contractorId);
       replaceJob(updatedJob);
+      const contractorName =
+        contractors.find((contractor) => contractor.id === contractorId)?.name ?? 'contractor';
+      setDashboardNotice(`Assigned job to ${contractorName}.`);
     } catch (error) {
       setDashboardError(toErrorMessage(error, 'Unable to assign this job.'));
     } finally {
@@ -227,6 +257,10 @@ function App() {
 
   const handleResetFilters = () => {
     setFilters(defaultFilters);
+  };
+
+  const handleRetryDashboard = () => {
+    setDashboardRefreshKey((current) => current + 1);
   };
 
   if (!authChecked || (accessToken && !currentUser)) {
@@ -276,7 +310,21 @@ function App() {
         </div>
       </section>
 
-      {dashboardError ? <p className="error-banner">{dashboardError}</p> : null}
+      {dashboardError ? (
+        <div className="feedback-banner error-banner">
+          <p>{dashboardError}</p>
+          <button
+            className="secondary-button"
+            type="button"
+            disabled={isLoadingDashboard}
+            onClick={handleRetryDashboard}
+          >
+            {isLoadingDashboard ? 'Retrying...' : 'Retry'}
+          </button>
+        </div>
+      ) : null}
+
+      {dashboardNotice ? <p className="success-banner">{dashboardNotice}</p> : null}
 
       <FilterBar
         contractors={contractors}

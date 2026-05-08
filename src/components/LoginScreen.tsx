@@ -38,6 +38,7 @@ export const LoginScreen = ({
             <span>Email</span>
             <input
               autoComplete="email"
+              disabled={isSubmitting}
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
@@ -48,6 +49,7 @@ export const LoginScreen = ({
             <span>Password</span>
             <input
               autoComplete="current-password"
+              disabled={isSubmitting}
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}

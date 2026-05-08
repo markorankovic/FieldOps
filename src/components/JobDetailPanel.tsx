@@ -54,6 +54,7 @@ export const JobDetailPanel = ({
   const allowedTransitions = getAllowedTransitions(job.status);
   const canAssignJobs = currentUserRole === 'ADMIN';
   const assignmentChanged = selectedContractorId !== (job.contractorId ?? '');
+  const isMutating = isAssigning || isUpdatingStatus;
 
   return (
     <aside className="panel detail-panel">
@@ -106,16 +107,17 @@ export const JobDetailPanel = ({
                 key={status}
                 className="secondary-button"
                 type="button"
-                disabled={isUpdatingStatus}
+                disabled={isMutating}
                 onClick={() => onChangeStatus(job.id, status)}
               >
-                Move to {statusLabels[status]}
+                {isUpdatingStatus ? 'Updating...' : `Move to ${statusLabels[status]}`}
               </button>
             ))
           ) : (
             <p className="muted-text">This job is in a terminal state.</p>
           )}
         </div>
+        {isUpdatingStatus ? <p className="muted-text">Saving status change...</p> : null}
       </div>
 
       {canAssignJobs ? (
@@ -124,6 +126,7 @@ export const JobDetailPanel = ({
           <div className="assignment-controls">
             <select
               aria-label="Assign contractor"
+              disabled={isMutating}
               value={selectedContractorId}
               onChange={(event) => setSelectedContractorId(event.target.value)}
             >
@@ -138,12 +141,13 @@ export const JobDetailPanel = ({
             <button
               className="secondary-button"
               type="button"
-              disabled={!selectedContractorId || !assignmentChanged || isAssigning}
+              disabled={!selectedContractorId || !assignmentChanged || isMutating}
               onClick={() => onAssignJob(job.id, selectedContractorId)}
             >
               {isAssigning ? 'Saving assignment...' : 'Save assignment'}
             </button>
           </div>
+          {isAssigning ? <p className="muted-text">Updating assignment...</p> : null}
         </div>
       ) : null}
 

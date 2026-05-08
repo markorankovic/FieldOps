@@ -444,12 +444,35 @@ button {
   opacity: 0.45;
 }
 
+.feedback-banner {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
 .error-banner {
   margin: 0 0 20px;
   padding: 12px 14px;
   border-radius: 14px;
   background: rgba(180, 35, 24, 0.12);
   color: #8f1d18;
+}
+
+.error-banner p,
+.success-banner {
+  margin: 0;
+}
+
+.success-banner {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(15, 118, 110, 0.12);
+  color: #0f766e;
+}
+
+.success-banner {
+  margin: 0 0 20px;
 }
 
 .timeline {
@@ -548,6 +571,11 @@ button {
   }
 
   .filter-meta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .feedback-banner {
     flex-direction: column;
     align-items: stretch;
   }

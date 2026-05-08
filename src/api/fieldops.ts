@@ -137,14 +137,23 @@ const request = async <T>(
   init?: RequestInit,
   token?: string,
 ): Promise<T> => {
-  const response = await fetch(`${apiBaseUrl}${path}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...init?.headers,
-    },
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${apiBaseUrl}${path}`, {
+      ...init,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...init?.headers,
+      },
+    });
+  } catch {
+    throw new ApiError(
+      0,
+      'Unable to reach the backend API. Check that the backend server is running.',
+    );
+  }
 
   if (!response.ok) {
     throw new ApiError(response.status, await readErrorMessage(response));

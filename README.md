@@ -53,30 +53,40 @@ Demo credentials on that branch:
 - Admin: `admin@fieldops.local` / `demo-admin`
 - Contractor: `maya@fieldops.local` / `demo-contractor`
 
-To run the full-stack branch locally:
+### How To Run The Full-Stack Branch
+
+1. Install frontend dependencies at the repo root:
 
 ```bash
 npm install
+```
+
+2. Install backend dependencies and prepare the local database:
+
+```bash
 cd backend
 npm install
 npx prisma db push
 npm run prisma:seed
 ```
 
-Start the backend:
+3. Start the backend API:
 
 ```bash
-cd backend
-npm run start:dev
+npm run dev:backend
 ```
 
-Start the frontend in a second terminal:
+4. Start the frontend in a second terminal from the repo root:
 
 ```bash
 npm run dev
 ```
 
-The Vite frontend proxies `/api` requests to `http://127.0.0.1:3000` on this branch.
+5. Sign in with one of the seeded users:
+- Admin: `admin@fieldops.local` / `demo-admin`
+- Contractor: `maya@fieldops.local` / `demo-contractor`
+
+The Vite frontend proxies `/api` requests to `http://127.0.0.1:3000` on this branch, so the frontend and backend run separately without extra environment setup.
 
 ## Tech Stack
 

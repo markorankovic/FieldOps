@@ -5,8 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:backend": "npm run start:dev --prefix backend",
     "build": "tsc -b && vite build",
+    "build:backend": "npm run build --prefix backend",
     "test": "vitest run",
+    "test:backend": "npm test --prefix backend",
+    "test:e2e:backend": "npm run test:e2e --prefix backend",
     "preview": "vite preview"
   },
   "dependencies": {
