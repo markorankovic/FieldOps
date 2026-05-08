@@ -1,11 +1,5 @@
-import { AuditAction, JobPriority, JobStatus, Role } from '@prisma/client';
-
-export type UserSummaryDto = {
-  id: string;
-  name: string;
-  email: string;
-  role: Role;
-};
+import { AuditAction, JobPriority, JobStatus } from '@prisma/client';
+import { UserSummaryDto } from '../../users/dto/user-summary.dto';
 
 export type AuditEntryResponseDto = {
   id: string;
